@@ -1,4 +1,4 @@
-// Killer Stardust - a Cursed Arcade game.
+// Killer Stardust - an Arcade Phantasm game.
 // Steer the comet, eat the stardust, grow your tail; the invaders fall in waves, faster each time. Touch one, or your
 // own tail, and it's over. Arrows / WASD (or swipe on a phone); Space or R to play again; P to pause.
 (function () {
@@ -19,7 +19,9 @@
   bg.src = "images/space-bg.jpg";
   var stars = [];
 
+  var sparks = [];                        // particles: stardust bursting when eaten, a cut tail breaking up
   var player, pellets, invaders, score, length, cuts, wave, waveEvery, lastWave, stepEvery, lastStep, state, nextDir;
+  var lastDraw = 0;
   var started = false;                    // the splash shows until the first key or tap
   var splash = document.getElementById("splash");
   var best = parseInt(localStorage.getItem("killerStardustBest") || "0", 10);
@@ -51,6 +53,7 @@
     score = 0;
     length = 3;                            // how long the tail may grow (each stardust adds one)
     cuts = [];                             // where invaders just cut the tail (a flash)
+    sparks = [];
     wave = 1;
     waveEvery = 6000;
     stepEvery = 110;                       // ms per move: about 9 cells a second
@@ -64,6 +67,15 @@
     for (var i = 0; i < 4 + wave * 2; i++) {
       invaders.push({ x: Math.floor(Math.random() * COLS), y: -Math.random() * 8,
                       v: 0.05 + Math.random() * 0.05 + wave * 0.01 });
+    }
+  }
+
+  // a burst of sparks from the middle of a cell, flying out, slowing and fading
+  function burst(cx, cy, n, speed, colours) {
+    for (var i = 0; i < n; i++) {
+      var a = Math.random() * Math.PI * 2, v = speed * (0.25 + Math.random() * 0.75), life = 350 + Math.random() * 400;
+      sparks.push({ x: (cx + 0.5) * CELL, y: (cy + 0.5) * CELL, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+                    life: life, max: life, c: colours[Math.floor(Math.random() * colours.length)] });
     }
   }
 
@@ -84,6 +96,8 @@
       if (pellets[j].x === player.x && pellets[j].y === player.y) {
         score++;
         length++;
+        burst(pellets[j].x, pellets[j].y, 26, 0.45, [COLOURS.dust, COLOURS.dust, "#ffffff"]);
+        if (window.Sfx && location.hash !== "#shot") Sfx.eat();
         pellets[j] = freeCell();           // stardust keeps coming
         stepEvery = Math.max(55, stepEvery - 1);
         showScore();
@@ -114,6 +128,8 @@
         var seg = player.tail[t];
         if (Math.abs(inv.x - seg.x) < 1 && Math.abs(inv.y - seg.y) < 1) {
           cuts.push({ x: seg.x, y: seg.y, until: now + 400 });
+          for (var b = t; b < player.tail.length; b++) burst(player.tail[b].x, player.tail[b].y, 4, 0.25, [COLOURS.tail, COLOURS.invader]);
+          if (window.Sfx) Sfx.cut();
           player.tail.length = t;
           length = Math.max(3, t);
           inv.y = -1;
@@ -126,6 +142,8 @@
 
   function gameOver() {
     state = "over";
+    burst(player.x, player.y, 60, 0.6, [COLOURS.head, COLOURS.tail]);
+    if (window.Sfx && location.hash !== "#shot") Sfx.over();
     if (score > best && location.hash !== "#shot") { best = score; localStorage.setItem("killerStardustBest", String(best)); }
     showScore();
   }
@@ -186,6 +204,21 @@
       ctx.lineWidth = 3;
       ctx.stroke();
     }
+
+    var dt = lastDraw ? Math.min(50, now - lastDraw) : 16;   // the sparks
+    lastDraw = now;
+    var drag = Math.exp(-0.003 * dt);
+    sparks = sparks.filter(function (s) { s.life -= dt; return s.life > 0; });
+    for (var p = 0; p < sparks.length; p++) {
+      var s = sparks[p], k = s.life / s.max;
+      s.x += s.vx * dt; s.y += s.vy * dt; s.vx *= drag; s.vy *= drag;
+      ctx.globalAlpha = k;
+      glow(s.c, 10);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 1 + 2.5 * k, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
 
     glow(COLOURS.invader, 16);               // the invaders
     for (var j = 0; j < invaders.length; j++) {

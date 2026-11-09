@@ -29,7 +29,7 @@
 
 # Killer Stardust
 
-**Play it:** https://killer-stardust.netlify.app/ · **A Cursed Arcade game**
+**Play it:** https://killer-stardust.netlify.app/ · **An Arcade Phantasm game**
 
 Steer the comet through space, eat the stardust to grow your tail, and dodge the invaders that fall in waves, faster
 every time. An invader through your tail **cuts it there**: everything behind the cut is gone. One on your comet's
@@ -56,7 +56,7 @@ Glowing blocks in the Cursed colours (a pink comet with a white head, blue stard
 twinkling starfield. Put a space picture at `images/space-bg.jpg` and it goes behind everything, darkened a little so
 the glow reads.
 
-The page is `index.html` with `index.css`; the game is `scripts/gameplay.js`, the theme `scripts/background_music.js`.
+The page is `index.html` with `index.css`; the game is `scripts/gameplay.js`, the theme `scripts/background_music.js`, the sound effects `scripts/sfx.js` (made with Web Audio, no files).
 
 A C++ version is coming to [PulseAmp](https://github.com/CursedPrograms/PulseAmp-Media-Player), moving with the music.
 
