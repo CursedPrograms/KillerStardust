@@ -19,7 +19,7 @@
   bg.src = "images/space-bg.jpg";
   var stars = [];
 
-  var player, pellets, invaders, score, wave, waveEvery, lastWave, stepEvery, lastStep, state, nextDir;
+  var player, pellets, invaders, score, length, cuts, wave, waveEvery, lastWave, stepEvery, lastStep, state, nextDir;
   var best = parseInt(localStorage.getItem("killerStardustBest") || "0", 10);
 
   function resize() {
@@ -47,6 +47,8 @@
     for (var i = 0; i < 40; i++) pellets.push(freeCell());
     invaders = [];
     score = 0;
+    length = 3;                            // how long the tail may grow (each stardust adds one)
+    cuts = [];                             // where invaders just cut the tail (a flash)
     wave = 1;
     waveEvery = 6000;
     stepEvery = 110;                       // ms per move: about 9 cells a second
@@ -75,10 +77,11 @@
       if (player.tail[i].x === player.x && player.tail[i].y === player.y) return gameOver();
     }
     player.tail.unshift({ x: player.x, y: player.y });
-    if (player.tail.length > score + 3) player.tail.pop();
+    while (player.tail.length > length) player.tail.pop();
     for (var j = 0; j < pellets.length; j++) {
       if (pellets[j].x === player.x && pellets[j].y === player.y) {
         score++;
+        length++;
         pellets[j] = freeCell();           // stardust keeps coming
         stepEvery = Math.max(55, stepEvery - 1);
         showScore();
@@ -103,7 +106,19 @@
       var inv = invaders[i];
       inv.y += inv.v;
       if (inv.y >= ROWS) { inv.y = -1; inv.x = Math.floor(Math.random() * COLS); }
-      if (Math.abs(inv.x - player.x) < 1 && Math.abs(inv.y - player.y) < 1) gameOver();
+      if (Math.abs(inv.x - player.x) < 1 && Math.abs(inv.y - player.y) < 1) { gameOver(); break; }
+      // an invader through the tail cuts it there: everything behind is lost, and the invader goes back up
+      for (var t = 1; t < player.tail.length; t++) {
+        var seg = player.tail[t];
+        if (Math.abs(inv.x - seg.x) < 1 && Math.abs(inv.y - seg.y) < 1) {
+          cuts.push({ x: seg.x, y: seg.y, until: now + 400 });
+          player.tail.length = t;
+          length = Math.max(3, t);
+          inv.y = -1;
+          inv.x = Math.floor(Math.random() * COLS);
+          break;
+        }
+      }
     }
   }
 
@@ -157,6 +172,17 @@
       ctx.fillRect(seg.x * CELL + 2, seg.y * CELL + 2, CELL - 4, CELL - 4);
     }
     ctx.globalAlpha = 1;
+
+    cuts = cuts.filter(function (c) { return c.until > now; });   // where the tail was just cut: a flash
+    glow("#ffffff", 30);
+    for (var c = 0; c < cuts.length; c++) {
+      var r = CELL * (1.6 - (cuts[c].until - now) / 400);
+      ctx.beginPath();
+      ctx.arc((cuts[c].x + 0.5) * CELL, (cuts[c].y + 0.5) * CELL, r, 0, Math.PI * 2);
+      ctx.strokeStyle = COLOURS.invader;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
 
     glow(COLOURS.invader, 16);               // the invaders
     for (var j = 0; j < invaders.length; j++) {

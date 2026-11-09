@@ -28,7 +28,8 @@
 # Killer Stardust
 
 A Cursed Arcade game: steer the comet through space, eat the stardust to grow your tail, and dodge the invaders that
-fall in waves, faster every time. Touch one, or your own tail, and it's over.
+fall in waves, faster every time. An invader through your tail cuts it there (you lose everything behind the cut); one
+on your comet's head, or running into your own tail, and it's over.
 
 - **Play:** arrows or WASD (or swipe on a phone), **P** to pause, **Space** to play again. Your best score is kept.
 - **The look:** the Cursed pink and blue with glowing blocks, over a twinkling starfield. Put a space picture at
