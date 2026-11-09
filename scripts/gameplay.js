@@ -127,7 +127,10 @@
       for (var t = 1; t < player.tail.length; t++) {
         var seg = player.tail[t];
         if (Math.abs(inv.x - seg.x) < 1 && Math.abs(inv.y - seg.y) < 1) {
-          cuts.push({ x: seg.x, y: seg.y, until: now + 400 });
+          var lost = player.tail.length - t;               // every lost segment costs the point it earned
+          score = Math.max(0, score - lost);
+          showScore();
+          cuts.push({ x: seg.x, y: seg.y, until: now + 900, lost: lost });
           for (var b = t; b < player.tail.length; b++) burst(player.tail[b].x, player.tail[b].y, 4, 0.25, [COLOURS.tail, COLOURS.invader]);
           if (window.Sfx) Sfx.cut();
           player.tail.length = t;
@@ -197,12 +200,20 @@
     cuts = cuts.filter(function (c) { return c.until > now; });   // where the tail was just cut: a flash
     glow("#ffffff", 30);
     for (var c = 0; c < cuts.length; c++) {
-      var r = CELL * (1.6 - (cuts[c].until - now) / 400);
-      ctx.beginPath();
-      ctx.arc((cuts[c].x + 0.5) * CELL, (cuts[c].y + 0.5) * CELL, r, 0, Math.PI * 2);
-      ctx.strokeStyle = COLOURS.invader;
-      ctx.lineWidth = 3;
-      ctx.stroke();
+      var k = 1 - (cuts[c].until - now) / 900;
+      if (k < 0.45) {
+        ctx.beginPath();
+        ctx.arc((cuts[c].x + 0.5) * CELL, (cuts[c].y + 0.5) * CELL, CELL * (0.6 + k * 2.2), 0, Math.PI * 2);
+        ctx.strokeStyle = COLOURS.invader;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1 - k;                          // the points lost, rising and fading
+      ctx.fillStyle = COLOURS.tail;
+      ctx.textAlign = "center";
+      ctx.font = "bold 20px Arial, sans-serif";
+      ctx.fillText("-" + cuts[c].lost, (cuts[c].x + 0.5) * CELL, (cuts[c].y - k * 1.5) * CELL);
+      ctx.globalAlpha = 1;
     }
 
     var dt = lastDraw ? Math.min(50, now - lastDraw) : 16;   // the sparks

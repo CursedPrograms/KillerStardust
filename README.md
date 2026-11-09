@@ -32,7 +32,7 @@
 **Play it:** https://killer-stardust.netlify.app/ · **An Arcade Phantasm game**
 
 Steer the comet through space, eat the stardust to grow your tail, and dodge the invaders that fall in waves, faster
-every time. An invader through your tail **cuts it there**: everything behind the cut is gone. One on your comet's
+every time. An invader through your tail **cuts it there**: everything behind the cut is gone, and so are the points it earned. One on your comet's
 head, or running into your own tail, and it's over.
 
 ![Killer Stardust: the glowing comet, the stardust and a wave of invaders](images/screenshot-play.png)
