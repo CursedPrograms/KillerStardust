@@ -1,187 +1,230 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const scoreElement = document.getElementById('score');
+// Killer Stardust - a Cursed Arcade game.
+// Steer the comet, eat the stardust, grow your tail; the invaders fall in waves, faster each time. Touch one, or your
+// own tail, and it's over. Arrows / WASD (or swipe on a phone); Space or R to play again; P to pause.
+(function () {
+  "use strict";
+  var canvas = document.getElementById("gameCanvas");
+  var ctx = canvas.getContext("2d");
+  var scoreEl = document.getElementById("score");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+  var CELL = 22;
+  var COLS, ROWS;
+  // the Cursed colours: corporate pink and blue, and an acid green for the invaders
+  var COLOURS = { tail: "#f088e9", head: "#ffffff", dust: "#34a9e3", invader: "#39ff6a", text: "#f088e9" };
 
-const CELL_SIZE = 20;
-const GRID_WIDTH = Math.floor(canvas.width / CELL_SIZE);
-const GRID_HEIGHT = Math.floor(canvas.height / CELL_SIZE);
+  // the space behind it all: images/space-bg.jpg when it's there, else only the starfield drawn here
+  var bg = new Image();
+  var bgReady = false;
+  bg.onload = function () { bgReady = true; };
+  bg.src = "images/space-bg.jpg";
+  var stars = [];
 
-let player = {
-    x: Math.floor(GRID_WIDTH / 2),
-    y: Math.floor(GRID_HEIGHT / 2),
-    direction: { x: 0, y: 0 },
-    tail: []
-};
+  var player, pellets, invaders, score, wave, waveEvery, lastWave, stepEvery, lastStep, state, nextDir;
+  var best = parseInt(localStorage.getItem("killerStardustBest") || "0", 10);
 
-let pellets = [];
-let invaders = [];
-let score = 0;
-let wave = 1;
-let waveInterval = 5000; // Interval to spawn new waves (in milliseconds)
-let lastWaveTime = 0;
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    COLS = Math.floor(canvas.width / CELL);
+    ROWS = Math.floor(canvas.height / CELL);
+    stars = [];
+    var n = Math.floor(canvas.width * canvas.height / 2500);
+    for (var i = 0; i < n; i++) {
+      stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                   r: Math.random() * 1.4 + 0.2, t: Math.random() * Math.PI * 2, s: 0.5 + Math.random() * 2 });
+    }
+  }
 
-function initGame() {
-    // Clear existing pellets and invaders
+  function freeCell() {
+    return { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) };
+  }
+
+  function reset() {
+    player = { x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2), dir: { x: 1, y: 0 }, tail: [] };
+    player.tail.push({ x: player.x, y: player.y });     // the comet's head shows from the start
+    nextDir = player.dir;
     pellets = [];
+    for (var i = 0; i < 40; i++) pellets.push(freeCell());
     invaders = [];
-
-    // Generate pellets
-    for (let i = 0; i < 50; i++) {
-        pellets.push({
-            x: Math.floor(Math.random() * GRID_WIDTH),
-            y: Math.floor(Math.random() * GRID_HEIGHT)
-        });
-    }
-
-    // Generate initial invaders
-    spawnWave();
-}
-
-function spawnWave() {
-    const invaderCount = 5 + wave * 2; // Increase invader count with each wave
-    for (let i = 0; i < invaderCount; i++) {
-        invaders.push({
-            x: Math.floor(Math.random() * GRID_WIDTH),
-            y: 0
-        });
-    }
-}
-
-function update() {
-    const currentTime = Date.now();
-    if (currentTime - lastWaveTime > waveInterval) {
-        lastWaveTime = currentTime;
-        wave++;
-        spawnWave();
-        waveInterval = Math.max(1000, waveInterval - 500); // Decrease interval, but not below 1000ms
-    }
-
-    // Move player
-    player.x += player.direction.x;
-    player.y += player.direction.y;
-
-    // Wrap around screen
-    player.x = (player.x + GRID_WIDTH) % GRID_WIDTH;
-    player.y = (player.y + GRID_HEIGHT) % GRID_HEIGHT;
-
-    // Update tail
-    player.tail.unshift({ x: player.x, y: player.y });
-    if (player.tail.length > score + 1) {
-        player.tail.pop();
-    }
-
-    // Check collision with pellets
-    pellets = pellets.filter(pellet => {
-        if (pellet.x === player.x && pellet.y === player.y) {
-            score++;
-            scoreElement.textContent = `Score: ${score}`;
-            return false;
-        }
-        return true;
-    });
-
-    // Move invaders
-    invaders.forEach(invader => {
-        invader.y += 0.1;
-        if (invader.y >= GRID_HEIGHT) {
-            invader.y = 0;
-            invader.x = Math.floor(Math.random() * GRID_WIDTH);
-        }
-    });
-
-    // Check collision with invaders
-    if (invaders.some(invader => Math.abs(invader.x - player.x) < 1 && Math.abs(invader.y - player.y) < 1)) {
-        gameOver();
-    }
-
-    // Check collision with tail
-    if (player.tail.slice(1).some(segment => segment.x === player.x && segment.y === player.y)) {
-        gameOver();
-    }
-}
-
-function draw() {
-    ctx.fillStyle = '#2a2a2a';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Draw fog effect
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    for (let x = 0; x < GRID_WIDTH; x++) {
-        for (let y = 0; y < GRID_HEIGHT; y++) {
-            if (Math.random() < 0.01) {
-                ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-            }
-        }
-    }
-
-    // Draw player
-    ctx.fillStyle = '#8b0000';
-    player.tail.forEach((segment, index) => {
-        const alpha = 1 - (index / player.tail.length);
-        ctx.fillStyle = `rgba(139, 0, 0, ${alpha})`;
-        ctx.fillRect(segment.x * CELL_SIZE, segment.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-    });
-
-    // Draw pellets
-    ctx.fillStyle = '#fff';
-    pellets.forEach(pellet => {
-        ctx.beginPath();
-        ctx.arc((pellet.x + 0.5) * CELL_SIZE, (pellet.y + 0.5) * CELL_SIZE, CELL_SIZE / 4, 0, Math.PI * 2);
-        ctx.fill();
-    });
-
-    // Draw invaders
-    ctx.fillStyle = '#0f0';
-    invaders.forEach(invader => {
-        ctx.fillRect(invader.x * CELL_SIZE, invader.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-    });
-}
-
-function gameLoop() {
-    update();
-    draw();
-    requestAnimationFrame(gameLoop);
-}
-
-function gameOver() {
-    alert(`Game Over! Your score: ${score}`);
-
-    // Reset game state
-    player.tail = [];
     score = 0;
-    scoreElement.textContent = 'Score: 0';
     wave = 1;
-    waveInterval = 5000;
-    lastWaveTime = Date.now();
+    waveEvery = 6000;
+    stepEvery = 110;                       // ms per move: about 9 cells a second
+    lastWave = lastStep = performance.now();
+    spawnWave();
+    state = "playing";
+    showScore();
+  }
 
-    // Reinitialize the game state
-    initGame();
-
-    // Optionally, reset player position and direction if needed
-    player.x = Math.floor(GRID_WIDTH / 2);
-    player.y = Math.floor(GRID_HEIGHT / 2);
-    player.direction = { x: 0, y: 0 };
-}
-
-document.addEventListener('keydown', (e) => {
-    switch (e.key) {
-        case 'ArrowUp':
-            if (player.direction.y !== 1) player.direction = { x: 0, y: -1 };
-            break;
-        case 'ArrowDown':
-            if (player.direction.y !== -1) player.direction = { x: 0, y: 1 };
-            break;
-        case 'ArrowLeft':
-            if (player.direction.x !== 1) player.direction = { x: -1, y: 0 };
-            break;
-        case 'ArrowRight':
-            if (player.direction.x !== -1) player.direction = { x: 1, y: 0 };
-            break;
+  function spawnWave() {
+    for (var i = 0; i < 4 + wave * 2; i++) {
+      invaders.push({ x: Math.floor(Math.random() * COLS), y: -Math.random() * 8,
+                      v: 0.05 + Math.random() * 0.05 + wave * 0.01 });
     }
-});
+  }
 
-initGame();
-gameLoop();
+  function showScore() {
+    scoreEl.textContent = "Score " + score + "   Wave " + wave + "   Best " + best;
+  }
+
+  function step() {
+    player.dir = nextDir;
+    player.x = (player.x + player.dir.x + COLS) % COLS;
+    player.y = (player.y + player.dir.y + ROWS) % ROWS;
+    for (var i = 1; i < player.tail.length; i++) {
+      if (player.tail[i].x === player.x && player.tail[i].y === player.y) return gameOver();
+    }
+    player.tail.unshift({ x: player.x, y: player.y });
+    if (player.tail.length > score + 3) player.tail.pop();
+    for (var j = 0; j < pellets.length; j++) {
+      if (pellets[j].x === player.x && pellets[j].y === player.y) {
+        score++;
+        pellets[j] = freeCell();           // stardust keeps coming
+        stepEvery = Math.max(55, stepEvery - 1);
+        showScore();
+      }
+    }
+  }
+
+  function update(now) {
+    if (state !== "playing") return;
+    if (now - lastWave > waveEvery) {
+      lastWave = now;
+      wave++;
+      spawnWave();
+      waveEvery = Math.max(2000, waveEvery - 400);
+      showScore();
+    }
+    while (now - lastStep > stepEvery && state === "playing") {
+      lastStep += stepEvery;
+      step();
+    }
+    for (var i = 0; i < invaders.length && state === "playing"; i++) {
+      var inv = invaders[i];
+      inv.y += inv.v;
+      if (inv.y >= ROWS) { inv.y = -1; inv.x = Math.floor(Math.random() * COLS); }
+      if (Math.abs(inv.x - player.x) < 1 && Math.abs(inv.y - player.y) < 1) gameOver();
+    }
+  }
+
+  function gameOver() {
+    state = "over";
+    if (score > best) { best = score; localStorage.setItem("killerStardustBest", String(best)); }
+    showScore();
+  }
+
+  function glow(colour, blur) {
+    ctx.shadowColor = colour;
+    ctx.shadowBlur = blur;
+    ctx.fillStyle = colour;
+  }
+
+  function drawBackground(now) {
+    if (bgReady) {
+      var k = Math.max(canvas.width / bg.width, canvas.height / bg.height);
+      ctx.drawImage(bg, (canvas.width - bg.width * k) / 2, (canvas.height - bg.height * k) / 2, bg.width * k, bg.height * k);
+      ctx.fillStyle = "rgba(0, 10, 25, 0.35)";      // a little darker, so the glow reads
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else {
+      ctx.fillStyle = "#020611";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#ffffff";
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      ctx.globalAlpha = 0.35 + 0.65 * Math.abs(Math.sin(s.t + now / 1000 * s.s));
+      ctx.fillRect(s.x, s.y, s.r, s.r);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function draw(now) {
+    drawBackground(now);
+    var pulse = 14 + 6 * Math.sin(now / 200);
+
+    glow(COLOURS.dust, 12);                  // the stardust
+    for (var i = 0; i < pellets.length; i++) {
+      ctx.beginPath();
+      ctx.arc((pellets[i].x + 0.5) * CELL, (pellets[i].y + 0.5) * CELL, CELL / 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    for (var t = player.tail.length - 1; t >= 0; t--) {     // the comet and its tail, fading
+      var seg = player.tail[t];
+      ctx.globalAlpha = Math.max(0.15, 1 - t / (player.tail.length + 2));
+      glow(t === 0 ? COLOURS.head : COLOURS.tail, t === 0 ? 24 : pulse);
+      ctx.fillRect(seg.x * CELL + 2, seg.y * CELL + 2, CELL - 4, CELL - 4);
+    }
+    ctx.globalAlpha = 1;
+
+    glow(COLOURS.invader, 16);               // the invaders
+    for (var j = 0; j < invaders.length; j++) {
+      var x = invaders[j].x * CELL, y = invaders[j].y * CELL;
+      ctx.fillRect(x + 3, y + 5, CELL - 6, CELL - 10);
+      ctx.fillRect(x + 1, y + 9, 3, 6);
+      ctx.fillRect(x + CELL - 4, y + 9, 3, 6);
+    }
+    ctx.shadowBlur = 0;
+
+    if (state !== "playing") {
+      ctx.fillStyle = "rgba(2, 6, 17, 0.6)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.textAlign = "center";
+      glow(COLOURS.text, 24);
+      ctx.font = "bold " + Math.min(72, canvas.width / 10) + "px 'Arial Black', Arial, sans-serif";
+      ctx.fillText(state === "over" ? "GAME OVER" : "PAUSED", canvas.width / 2, canvas.height / 2 - 20);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "20px Arial, sans-serif";
+      ctx.fillText(state === "over" ? "Score " + score + "  ·  Space, R or tap to play again" : "P to carry on",
+                   canvas.width / 2, canvas.height / 2 + 24);
+    }
+  }
+
+  function loop(now) {
+    update(now);
+    draw(now);
+    requestAnimationFrame(loop);
+  }
+
+  function turn(x, y) {
+    if (state !== "playing") return;
+    if (player.dir.x === -x && player.dir.y === -y) return;   // no reversing into yourself
+    nextDir = { x: x, y: y };
+  }
+
+  document.addEventListener("keydown", function (e) {
+    var k = e.key.toLowerCase();
+    if (k === "arrowup" || k === "w") turn(0, -1);
+    else if (k === "arrowdown" || k === "s") turn(0, 1);
+    else if (k === "arrowleft" || k === "a") turn(-1, 0);
+    else if (k === "arrowright" || k === "d") turn(1, 0);
+    else if ((k === " " || k === "r") && state === "over") reset();
+    else if (k === "p" && state !== "over") {
+      state = state === "paused" ? "playing" : "paused";
+      lastStep = lastWave = performance.now();
+    } else return;
+    e.preventDefault();
+  });
+
+  // swipe on a phone; tap to play again
+  var touch = null;
+  canvas.addEventListener("touchstart", function (e) {
+    touch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (state === "over") reset();
+  }, { passive: true });
+  canvas.addEventListener("touchend", function (e) {
+    if (!touch) return;
+    var dx = e.changedTouches[0].clientX - touch.x, dy = e.changedTouches[0].clientY - touch.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) > 24) {
+      if (Math.abs(dx) > Math.abs(dy)) turn(dx > 0 ? 1 : -1, 0); else turn(0, dy > 0 ? 1 : -1);
+    }
+    touch = null;
+  }, { passive: true });
+
+  window.addEventListener("resize", function () { resize(); reset(); });
+  resize();
+  reset();
+  requestAnimationFrame(loop);
+})();

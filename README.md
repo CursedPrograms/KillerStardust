@@ -25,7 +25,17 @@
   </div>  
   <br>
 
-# killer-stardust
+# Killer Stardust
+
+A Cursed Arcade game: steer the comet through space, eat the stardust to grow your tail, and dodge the invaders that
+fall in waves, faster every time. Touch one, or your own tail, and it's over.
+
+- **Play:** arrows or WASD (or swipe on a phone), **P** to pause, **Space** to play again. Your best score is kept.
+- **The look:** the Cursed pink and blue with glowing blocks, over a twinkling starfield. Put a space picture at
+  `images/space-bg.jpg` and it goes behind everything (darkened a little so the glow reads).
+- A C++ version plays inside [PulseAmp](https://github.com/CursedPrograms/PulseAmp-Media-Player), moving with the music.
+
+<!-- (the old heading) -->
 <div align="center">
  <img src="images/kdlogo.png"
         alt="Killer Stardust Logo" style="width:250px;">

@@ -1,35 +1,48 @@
+/* Killer Stardust: the game fills the window; the score and help sit over it in the Cursed pink. */
 body,
 html {
     margin: 0;
     padding: 0;
     height: 100%;
     overflow: hidden;
-    background-color: #000;
+    background-color: #020611;
     font-family: 'Arial', sans-serif;
 }
 
 #gameCanvas {
     display: block;
-    margin: 0 auto;
-    background: url('path/to/fog.png') repeat;
     width: 100%;
     height: 100%;
 }
 
 #score {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    color: #ffffff;
-    font-size: 24px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    top: 12px;
+    left: 14px;
+    color: #f088e9;
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    white-space: pre;
 }
 
-#footer {
+#help {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
-    color: #fff;
+    top: 16px;
+    right: 14px;
+    color: #c2c2c2;
+    font-size: 13px;
+}
+
+#dynamicFooter {
+    position: absolute;
+    bottom: 8px;
+    left: 14px;
+    color: #c2c2c2;
     font-size: 12px;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+@media (max-width: 600px) {
+    #help { display: none; }
+    #score { font-size: 16px; }
 }
