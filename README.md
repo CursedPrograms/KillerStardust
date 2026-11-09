@@ -8,8 +8,8 @@
 </div>
   <br>
 
-<a href="https://github.com/CursedPrograms/killer-stardust/actions/workflows/proof-html.yml">
-    <img class="workflow-badge workflow-success" src="https://github.com/CursedPrograms/killer-stardust/actions/workflows/proof-html.yml/badge.svg" alt="Proof HTML Workflow">
+<a href="https://github.com/CursedPrograms/KillerStardust/actions/workflows/proof-html.yml">
+    <img class="workflow-badge workflow-success" src="https://github.com/CursedPrograms/KillerStardust/actions/workflows/proof-html.yml/badge.svg" alt="Proof HTML Workflow">
 </a>
 <br>
 <div align="center">
@@ -29,7 +29,7 @@
 
 # Killer Stardust
 
-**Play it:** https://killer-stardust.netlify.app/ · **[Windows exe](https://github.com/CursedPrograms/killer-stardust/releases/latest)** · **An Arcade Phantasm game**
+**Play it:** https://killer-stardust.netlify.app/ · **[Windows exe](https://github.com/CursedPrograms/KillerStardust/releases/latest)** · **An Arcade Phantasm game**
 
 Steer the comet through space, eat the stardust to grow your tail, and dodge the invaders that fall in waves, faster
 every time. An invader through your tail **cuts it there**: everything behind the cut is gone, and so are the points it earned. One on your comet's
@@ -63,7 +63,7 @@ The page is `index.html` with `index.css`; the game is `scripts/gameplay.js`, th
 | | |
 |---|---|
 | **Browser** | this folder: [killer-stardust.netlify.app](https://killer-stardust.netlify.app/) |
-| **Windows exe** | `cpp/`: download `KillerStardust-win64.zip` from the [latest release](https://github.com/CursedPrograms/killer-stardust/releases/latest), unzip, run `KillerStardust.exe` |
+| **Windows exe** | `cpp/`: download `KillerStardust-win64.zip` from the [latest release](https://github.com/CursedPrograms/KillerStardust/releases/latest), unzip, run `KillerStardust.exe` |
 | **Android** | `android/`: coming |
 | **PulseAmp** | a version built into [PulseAmp](https://github.com/CursedPrograms/PulseAmp-Media-Player)'s games, moving with your music |
 
