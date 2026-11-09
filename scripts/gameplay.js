@@ -20,6 +20,8 @@
   var stars = [];
 
   var player, pellets, invaders, score, length, cuts, wave, waveEvery, lastWave, stepEvery, lastStep, state, nextDir;
+  var started = false;                    // the splash shows until the first key or tap
+  var splash = document.getElementById("splash");
   var best = parseInt(localStorage.getItem("killerStardustBest") || "0", 10);
 
   function resize() {
@@ -90,7 +92,7 @@
   }
 
   function update(now) {
-    if (state !== "playing") return;
+    if (!started || state !== "playing") return;
     if (now - lastWave > waveEvery) {
       lastWave = now;
       wave++;
@@ -124,7 +126,7 @@
 
   function gameOver() {
     state = "over";
-    if (score > best) { best = score; localStorage.setItem("killerStardustBest", String(best)); }
+    if (score > best && location.hash !== "#shot") { best = score; localStorage.setItem("killerStardustBest", String(best)); }
     showScore();
   }
 
@@ -156,6 +158,7 @@
 
   function draw(now) {
     drawBackground(now);
+    if (!started) return;                   // only the stars behind the splash
     var pulse = 14 + 6 * Math.sin(now / 200);
 
     glow(COLOURS.dust, 12);                  // the stardust
@@ -220,7 +223,16 @@
     nextDir = { x: x, y: y };
   }
 
+  function start() {
+    started = true;
+    splash.classList.add("gone");
+    document.body.classList.add("playing");
+    reset();
+  }
+  splash.addEventListener("click", start);
+
   document.addEventListener("keydown", function (e) {
+    if (!started) { start(); e.preventDefault(); return; }
     var k = e.key.toLowerCase();
     if (k === "arrowup" || k === "w") turn(0, -1);
     else if (k === "arrowdown" || k === "s") turn(0, 1);
@@ -238,6 +250,7 @@
   var touch = null;
   canvas.addEventListener("touchstart", function (e) {
     touch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (!started) { start(); touch = null; return; }
     if (state === "over") reset();
   }, { passive: true });
   canvas.addEventListener("touchend", function (e) {
@@ -249,8 +262,24 @@
     touch = null;
   }, { passive: true });
 
-  window.addEventListener("resize", function () { resize(); reset(); });
+  window.addEventListener("resize", function () { if (location.hash !== "#shot") { resize(); reset(); } });
   resize();
   reset();
+  var shot = location.hash === "#shot";
+  if (shot) {                              // for README screenshots: a few hundred moves played at once, then drawn
+    splash.style.display = "none";
+    start();
+    var t = performance.now(), turns = [[0, -1], [1, 0], [0, 1], [1, 0]];
+    for (var i = 0; i < 260 && state === "playing"; i++) {
+      if (i % 9 === 0) { var d = turns[(i / 9) % 4]; turn(d[0], d[1]); }
+      t += stepEvery;
+      update(t);
+      if (i % 3 === 0) { score++; length++; }            // as if eating as it goes, for a long tail
+    }
+    state = "playing";
+    showScore();
+    draw(t);
+    return;
+  }
   requestAnimationFrame(loop);
 })();

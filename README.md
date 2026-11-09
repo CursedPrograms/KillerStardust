@@ -25,30 +25,47 @@
   </div>  
   <br>
 
+<p align="center"><img src="images/kdlogo.png" alt="Killer Stardust" width="420"></p>
+
 # Killer Stardust
 
-A Cursed Arcade game: steer the comet through space, eat the stardust to grow your tail, and dodge the invaders that
-fall in waves, faster every time. An invader through your tail cuts it there (you lose everything behind the cut); one
-on your comet's head, or running into your own tail, and it's over.
+**Play it:** https://killer-stardust.netlify.app/ · **A Cursed Arcade game**
 
-- **Play:** arrows or WASD (or swipe on a phone), **P** to pause, **Space** to play again. Your best score is kept.
-- **The look:** the Cursed pink and blue with glowing blocks, over a twinkling starfield. Put a space picture at
-  `images/space-bg.jpg` and it goes behind everything (darkened a little so the glow reads).
-- A C++ version plays inside [PulseAmp](https://github.com/CursedPrograms/PulseAmp-Media-Player), moving with the music.
+Steer the comet through space, eat the stardust to grow your tail, and dodge the invaders that fall in waves, faster
+every time. An invader through your tail **cuts it there**: everything behind the cut is gone. One on your comet's
+head, or running into your own tail, and it's over.
 
-<!-- (the old heading) -->
+![Killer Stardust: the glowing comet, the stardust and a wave of invaders](images/screenshot-play.png)
+
+## Play
+
+| Key | Does |
+| --- | --- |
+| Arrows or WASD (swipe on a phone) | steer |
+| P | pause |
+| Space, R or a tap | play again after a game over |
+
+The splash (the Killer Stardust and Cursed logos) waits for a key or a tap, which also starts the music. Your best
+score is kept in the browser.
+
+![The splash before the game](images/screenshot-splash.png)
+
+## The look
+
+Glowing blocks in the Cursed colours (a pink comet with a white head, blue stardust, acid-green invaders) over a
+twinkling starfield. Put a space picture at `images/space-bg.jpg` and it goes behind everything, darkened a little so
+the glow reads.
+
+The page is `index.html` with `index.css`; the game is `scripts/gameplay.js`, the theme `scripts/background_music.js`.
+
+A C++ version is coming to [PulseAmp](https://github.com/CursedPrograms/PulseAmp-Media-Player), moving with the music.
+
 <div align="center">
- <img src="images/kdlogo.png"
-        alt="Killer Stardust Logo" style="width:250px;">
-        </div>
-<div align="center">
-  <a href="https://www.youtube.com/watch?v=7ybDTxmQgUs" target="_blank">
-    Gameplay Video
-  </a>
+  <a href="https://www.youtube.com/watch?v=7ybDTxmQgUs" target="_blank">Gameplay video (an earlier version)</a>
 </div>
 <br>
 <div align="center">
-© Cursed Entertainment 2024
+© Cursed Entertainment 2026
 </div>
 <br>
 <div align="center">

@@ -26,6 +26,15 @@ html {
     white-space: pre;
 }
 
+#score, #help {
+    visibility: hidden;
+}
+
+body.playing #score,
+body.playing #help {
+    visibility: visible;
+}
+
 #help {
     position: absolute;
     top: 16px;
@@ -40,6 +49,53 @@ html {
     left: 14px;
     color: #c2c2c2;
     font-size: 12px;
+}
+
+/* the splash, before the game starts: the game's logo, the Cursed logo, the copyright */
+#splash {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    background: rgba(2, 6, 17, 0.55);
+    cursor: pointer;
+    transition: opacity 0.5s;
+}
+
+#splash.gone {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#splash .game-logo {
+    width: min(560px, 80vw);
+    image-rendering: pixelated;
+}
+
+#splash .cursed-logo {
+    width: min(300px, 50vw);
+}
+
+#splash .copyright {
+    margin: 0;
+    color: #c2c2c2;
+    font-size: 15px;
+}
+
+#splash .press {
+    margin: 22px 0 0;
+    color: #f088e9;
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    animation: blink 1.2s steps(2, start) infinite;
+}
+
+@keyframes blink {
+    to { visibility: hidden; }
 }
 
 @media (max-width: 600px) {
