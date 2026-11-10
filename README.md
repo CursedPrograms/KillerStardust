@@ -64,7 +64,7 @@ The page is `index.html` with `index.css`; the game is `scripts/gameplay.js`, th
 |---|---|
 | **Browser** | this folder: [killer-stardust.netlify.app](https://killer-stardust.netlify.app/) |
 | **Windows exe** | `cpp/`: download `KillerStardust-win64.zip` from the [latest release](https://github.com/CursedPrograms/KillerStardust/releases/latest), unzip, run `KillerStardust.exe` |
-| **Android** | `android/`: coming |
+| **Android** | `android/`: the APK is in [`android/apk/`](android/apk/), see [Android](#android) below |
 | **PulseAmp** | a version built into [PulseAmp](https://github.com/CursedPrograms/PulseAmp-Media-Player)'s games, moving with your music |
 
 ### The Windows exe
@@ -79,6 +79,19 @@ To build it: Visual Studio 2022 (C++) and CMake, then `cpp/build.bat` (or `build
 SDL2 installed). It fetches SDL2 once into `cpp/external/`, builds `cpp/build/Release/KillerStardust.exe` and packs
 `cpp/dist/KillerStardust-win64.zip`. The code: `cpp/src/main.cpp` (window, splash, HUD), `game.cpp` (rules, drawing,
 sparks), `audio.cpp` (theme, beat listener, sound effects).
+
+### Android
+
+The browser game in an Android app: it plays offline, full screen in landscape, with the sound on from the start
+(Android 7.0 or newer).
+
+- **Download**: the APK in [`android/apk/`](android/apk/). Copy it to the phone and open it (allow installs from
+  unknown sources when asked).
+- **Build it**: the Android SDK and JDK 17, then `android/build.bat` (or `build.ps1`, `build.sh`). It runs
+  `gradlew assembleDebug` and leaves the APK in `android/apk/`. The game's web files are copied into the app at build
+  time, so the browser game at the repo root stays the only copy.
+- **The code**: `android/app/src/main/java/com/synthwomb/killerstardust/MainActivity.kt`, a full-screen WebView that serves the
+  game from the app's assets. Press Back twice to leave.
 
 <div align="center">
   <a href="https://www.youtube.com/watch?v=7ybDTxmQgUs" target="_blank">Gameplay video (an earlier version)</a>
